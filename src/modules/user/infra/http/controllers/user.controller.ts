@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { Prisma, User } from '@prisma/client';
 import { CreateUserService } from 'src/modules/user/services/create-user.service';
 import { FindByFieldService } from 'src/modules/user/services/find-by-field.service';
@@ -24,6 +25,7 @@ export class UserController {
     });
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Get('/:email')
   async getByEmail(
     @Param() { email }: Prisma.UserWhereUniqueInput,

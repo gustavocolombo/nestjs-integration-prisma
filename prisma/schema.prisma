@@ -20,3 +20,14 @@ model User {
 
   @@map("users")
 }
+
+model Library{
+  id String @id @default(uuid())
+  books Int @default(0)
+  name String
+  latitude Float
+  longitue Float
+  cellphone String
+  
+  @@map("libraries")
+}
