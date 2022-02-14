@@ -1,5 +1,6 @@
-import { Body, Controller, Post } from '@nestjs/common';
-import { Book } from '@prisma/client';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Book, Library } from '@prisma/client';
+import { ListBookForLibraryService } from 'src/modules/books/services/list-book-for-library.service';
 import { CreateBooksService } from '../../../services/create-books.service';
 
 interface BookInterface {
@@ -12,7 +13,10 @@ interface BookInterface {
 
 @Controller('api/v1/books')
 export class BooksController {
-  constructor(private createBookService: CreateBooksService) {}
+  constructor(
+    private createBookService: CreateBooksService,
+    private findBookForLibService: ListBookForLibraryService,
+  ) {}
 
   @Post('/create')
   async createBooks(
@@ -25,5 +29,10 @@ export class BooksController {
       name,
       qtdPages,
     });
+  }
+
+  @Get('/get-books/:id')
+  async getBooksForLibrary(@Param('id') id: string): Promise<Book[]> {
+    return await this.findBookForLibService.execute(id);
   }
 }
