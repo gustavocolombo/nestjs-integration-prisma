@@ -14,20 +14,35 @@ model User {
   id        String @id @default(uuid())
   firstname String
   lastname  String
-  email String @unique
-  password String
+  email     String @unique
+  password  String
   cellphone String
 
   @@map("users")
 }
 
-model Library{
-  id String @id @default(uuid())
-  books Int @default(0)
-  name String
-  latitude Float
-  longitue Float
+model Library {
+  id        String @id @default(uuid())
+  qtdBooks     Int    @default(0)
+  name      String
+  latitude  Float
+  longitue  Float
   cellphone String
-  
+  books Book[]
+
   @@map("libraries")
+}
+
+model Book {
+  id        String   @id @default(uuid())
+  name      String
+  author    String
+  createdAt DateTime @default(now())
+  qtdPages  Int
+  ISBN      Int
+  libraryId String
+
+  library Library @relation(fields: [libraryId], references: [id])
+
+  @@map("books")
 }
