@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Library } from '@prisma/client';
 import { PrismaService } from '../../../shared/prisma/prisma.service';
@@ -53,15 +54,43 @@ describe('CreateLibraryService', () => {
         prismaMockup.library.create.mockReturnValue(Promise.resolve(library));
       });
       it('should return a library', async () => {
-        const library = await service.execute({
-          name: libraryInterface.name,
-          cellphone: libraryInterface.cellphone,
-          latitude: libraryInterface.latitude,
-          longitue: libraryInterface.longitue,
-          qtdBooks: libraryInterface.qtdBooks,
-        });
+        const data = {
+          name: 'livro 1',
+          cellphone: '85981180797',
+          latitude: -43.28374,
+          longitue: -44.19082,
+          qtdBooks: 30,
+        };
+
+        const library = await service.execute(data);
 
         expect(library).toEqual(libraryInterface);
+      });
+    });
+  });
+
+  describe('when a creating a library with name exists', () => {
+    describe('are fields are dont correct', () => {
+      let library: Library;
+      beforeEach(() => {
+        library = {
+          ...libraryInterface,
+        };
+        prismaMockup.library.findFirst.mockRejectedValue(
+          Promise.reject(library),
+        );
+        prismaMockup.library.create.mockRejectedValue(Promise.resolve(library));
+      });
+      it('should not return a library', async () => {
+        expect(
+          service.execute({
+            name: libraryInterface.name,
+            cellphone: libraryInterface.cellphone,
+            latitude: libraryInterface.latitude,
+            longitue: libraryInterface.longitue,
+            qtdBooks: 30,
+          }),
+        ).rejects.toEqual(new BadRequestException('Operação não realizada'));
       });
     });
   });

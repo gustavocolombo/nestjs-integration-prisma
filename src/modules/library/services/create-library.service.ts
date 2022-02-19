@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Library, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../shared/prisma/prisma.service';
 
@@ -12,12 +16,15 @@ export class CreateLibraryService {
     latitude,
     cellphone,
   }: Prisma.LibraryCreateInput): Promise<Library> {
-    let library = await this.prismaService.library.findFirst({
-      where: { name: name },
-    });
+    try {
+      const library = await this.prismaService.library.findFirst({
+        where: { name: name },
+      });
 
-    if (!library) {
-      library = await this.prismaService.library.create({
+      if (library)
+        throw new UnauthorizedException('Biblioteca com nome já existente');
+
+      const newLibrary = await this.prismaService.library.create({
         data: {
           name,
           latitude,
@@ -25,9 +32,10 @@ export class CreateLibraryService {
           cellphone,
         },
       });
-      return library;
-    }
 
-    return library;
+      return newLibrary;
+    } catch (error) {
+      throw new BadRequestException('Operação não realizada');
+    }
   }
 }
