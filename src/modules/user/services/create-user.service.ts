@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { User, Prisma } from '@prisma/client';
 import { hash } from 'bcryptjs';
 import { PrismaService } from '../../../shared/prisma/prisma.service';
@@ -14,14 +18,17 @@ export class CreateUserService {
     password,
     cellphone,
   }: Prisma.UserCreateInput): Promise<User> {
-    let user = await this.prisma.user.findFirst({
-      where: { email: email },
-    });
+    try {
+      const user = await this.prisma.user.findFirst({
+        where: { email: email },
+      });
 
-    if (!user) {
+      if (user)
+        throw new UnauthorizedException('Usuário com dados já existente');
+
       const hashedPass = await hash(password, 8);
 
-      user = await this.prisma.user.create({
+      const newUser = await this.prisma.user.create({
         data: {
           firstname,
           lastname,
@@ -31,9 +38,9 @@ export class CreateUserService {
         },
       });
 
-      return user;
+      return newUser;
+    } catch (error) {
+      throw new BadRequestException('Operação não realizada');
     }
-
-    return user;
   }
 }

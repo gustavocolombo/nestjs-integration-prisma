@@ -37,6 +37,10 @@ describe('CreateLibraryService', () => {
     service = module.get<CreateLibraryService>(CreateLibraryService);
   });
 
+  afterEach(async () => {
+    jest.clearAllMocks();
+  });
+
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
@@ -63,6 +67,8 @@ describe('CreateLibraryService', () => {
         const library = await service.execute(data);
 
         expect(library).toEqual(libraryInterface);
+        expect(prismaMockup.library.findFirst).toBeCalledTimes(1);
+        expect(prismaMockup.library.create).toBeCalledTimes(1);
       });
     });
   });
@@ -89,6 +95,9 @@ describe('CreateLibraryService', () => {
             qtdBooks: 30,
           }),
         ).rejects.toEqual(new BadRequestException('Operação não realizada'));
+
+        expect(prismaMockup.library.findFirst).toBeCalledTimes(1);
+        expect(prismaMockup.library.create).toBeCalledTimes(0);
       });
     });
   });

@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { User } from '@prisma/client';
 import { PrismaService } from '../../../shared/prisma/prisma.service';
@@ -36,6 +37,10 @@ describe('CreateUserService', () => {
     service = module.get<CreateUserService>(CreateUserService);
   });
 
+  afterEach(async () => {
+    jest.clearAllMocks();
+  });
+
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
@@ -47,7 +52,7 @@ describe('CreateUserService', () => {
         user = {
           ...userInterface,
         };
-        prismaMockup.user.findFirst.mockReturnValue(Promise.resolve(user));
+        prismaMockup.user.findFirst.mockReturnValue(Promise.resolve(undefined));
         prismaMockup.user.create.mockReturnValue(Promise.resolve(user));
       });
       it('should be able a return user', async () => {
@@ -60,6 +65,38 @@ describe('CreateUserService', () => {
         });
 
         expect(user).toEqual(userInterface);
+        expect(prismaMockup.user.findFirst).toBeCalledTimes(1);
+        expect(prismaMockup.user.create).toBeCalledTimes(1);
+      });
+    });
+  });
+
+  describe('when a create user with no name', () => {
+    describe('all fields are dont correct', () => {
+      let user: User;
+      beforeEach(() => {
+        user = {
+          ...userInterface,
+        };
+        prismaMockup.user.findFirst.mockRejectedValue(
+          Promise.resolve(undefined),
+        );
+        prismaMockup.user.create.mockRejectedValue(Promise.resolve(undefined));
+      });
+      it('should not return user created', async () => {
+        const userData = {
+          firstname: userInterface.firstname,
+          lastname: userInterface.lastname,
+          cellphone: userInterface.cellphone,
+          email: userInterface.email,
+          password: userInterface.password,
+        };
+
+        await expect(service.execute(userData)).rejects.toEqual(
+          new BadRequestException('Operação não realizada'),
+        );
+        expect(prismaMockup.user.findFirst).toBeCalledTimes(1);
+        expect(prismaMockup.user.create).toBeCalledTimes(0);
       });
     });
   });

@@ -38,6 +38,10 @@ describe('CreateBooksService', () => {
     bookService = module.get<CreateBooksService>(CreateBooksService);
   });
 
+  afterEach(async () => {
+    jest.clearAllMocks();
+  });
+
   it('should be defined', () => {
     expect(bookService).toBeDefined();
   });
@@ -62,6 +66,8 @@ describe('CreateBooksService', () => {
         });
 
         expect(fetchedBook).toEqual(bookInterface);
+        expect(prismaMockup.book.findFirst).toBeCalledTimes(1);
+        expect(prismaMockup.book.create).toBeCalledTimes(1);
       });
     });
   });
@@ -88,6 +94,8 @@ describe('CreateBooksService', () => {
         await expect(bookService.execute(data)).rejects.toEqual(
           new BadRequestException('Operação não realizada'),
         );
+        expect(prismaMockup.book.findFirst).toBeCalledTimes(1);
+        expect(prismaMockup.book.create).toBeCalledTimes(0);
       });
     });
   });
