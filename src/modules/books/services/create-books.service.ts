@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Book } from '@prisma/client';
 import { PrismaService } from '../../../shared/prisma/prisma.service';
 
@@ -21,16 +25,26 @@ export class CreateBooksService {
     qtdPages,
     libraryId,
   }: BookInterface): Promise<Book> {
-    const books = await this.prismaService.book.create({
-      data: {
-        ISBN,
-        author,
-        name,
-        qtdPages,
-        libraryId,
-      },
-    });
+    try {
+      const book = await this.prismaService.book.findFirst({
+        where: { ISBN: ISBN },
+      });
 
-    return books;
+      if (book) throw new UnauthorizedException('ISBN já existe');
+
+      const books = await this.prismaService.book.create({
+        data: {
+          ISBN,
+          author,
+          name,
+          qtdPages,
+          libraryId,
+        },
+      });
+
+      return books;
+    } catch (error) {
+      throw new BadRequestException('Operação não realizada');
+    }
   }
 }

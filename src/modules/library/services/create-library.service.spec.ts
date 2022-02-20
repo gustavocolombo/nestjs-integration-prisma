@@ -48,9 +48,7 @@ describe('CreateLibraryService', () => {
         library = {
           ...libraryInterface,
         };
-        prismaMockup.library.findFirst.mockReturnValue(
-          Promise.resolve(library),
-        );
+        prismaMockup.library.findFirst.mockReturnValue(undefined);
         prismaMockup.library.create.mockReturnValue(Promise.resolve(library));
       });
       it('should return a library', async () => {
@@ -77,12 +75,12 @@ describe('CreateLibraryService', () => {
           ...libraryInterface,
         };
         prismaMockup.library.findFirst.mockRejectedValue(
-          Promise.reject(library),
+          Promise.resolve(library),
         );
         prismaMockup.library.create.mockRejectedValue(Promise.resolve(library));
       });
       it('should not return a library', async () => {
-        expect(
+        await expect(
           service.execute({
             name: libraryInterface.name,
             cellphone: libraryInterface.cellphone,

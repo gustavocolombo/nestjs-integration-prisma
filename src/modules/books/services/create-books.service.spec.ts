@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CreateBooksService } from './create-books.service';
 import { PrismaService } from '../../../shared/prisma/prisma.service';
 import { Book, Prisma, User } from '@prisma/client';
+import { BadRequestException } from '@nestjs/common';
 
 describe('CreateBooksService', () => {
   let bookService: CreateBooksService;
@@ -9,6 +10,7 @@ describe('CreateBooksService', () => {
   const prismaMockup = {
     book: {
       create: jest.fn(),
+      findFirst: jest.fn(),
     },
   };
 
@@ -47,6 +49,7 @@ describe('CreateBooksService', () => {
         book = {
           ...bookInterface,
         };
+        prismaMockup.book.findFirst.mockReturnValue(undefined);
         prismaMockup.book.create.mockReturnValue(Promise.resolve(book));
       });
       it('should return a user', async () => {
@@ -59,6 +62,32 @@ describe('CreateBooksService', () => {
         });
 
         expect(fetchedBook).toEqual(bookInterface);
+      });
+    });
+  });
+
+  describe('when create a book with ISBN already exists', () => {
+    describe('all fields are dont valid', () => {
+      let book: Book;
+      beforeEach(() => {
+        book = {
+          ...bookInterface,
+        };
+        prismaMockup.book.findFirst.mockRejectedValue(Promise.resolve(book));
+        prismaMockup.book.create.mockRejectedValue(Promise.resolve(book));
+      });
+      it('should not return book', async () => {
+        const data = {
+          ISBN: 128974323,
+          name: 'novo livro',
+          author: 'nome autor',
+          qtdPages: 580,
+          libraryId: '12345',
+        };
+
+        await expect(bookService.execute(data)).rejects.toEqual(
+          new BadRequestException('Operação não realizada'),
+        );
       });
     });
   });
